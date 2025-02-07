@@ -1,43 +1,63 @@
 CREATE SCHEMA IF NOT EXISTS Supermarket;
 USE Supermarket;
 
--- Таблица за категориите продукти
-CREATE TABLE IF NOT EXISTS Categories (
-    CategoryID INT AUTO_INCREMENT PRIMARY KEY,
-    CategoryName VARCHAR(100) NOT NULL
+CREATE TABLE IF NOT EXISTS Employees(
+	Employee_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Store_ID INT NOT NULL,
+    First_Name VARCHAR(20) NOT NULL,
+    Last_Name VARCHAR(20) NOT NULL,
+    Position VARCHAR(50) NOT NULL,
+    Yearly_Salary DECIMAL(10, 2) NOT NULL,
+    FOREIGN KEY (Store_ID) REFERENCES Stores(Store_ID)
 );
 
--- Таблица за продуктите
-CREATE TABLE IF NOT EXISTS Products (
-    ProductID INT AUTO_INCREMENT PRIMARY KEY,
-    ProductName VARCHAR(100) NOT NULL,
-    Price DECIMAL(10,2) NOT NULL,
-    CategoryID INT,
-    FOREIGN KEY (CategoryID) REFERENCES Categories(CategoryID)
+CREATE TABLE IF NOT EXISTS Stores(
+	Store_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Location VARCHAR(50) NOT NULL,
+    Area DECIMAL(10, 2) NOT NULL, CHECK(Area>0),
+    Yearly_Earnings DECIMAL(10, 2) NOT NULL, CHECK(Yearly_Earnings>0),
+    Weekly_Visits INT NOT NULL
 );
 
--- Таблица за клиентите
-CREATE TABLE IF NOT EXISTS Customers (
-    CustomerID INT AUTO_INCREMENT PRIMARY KEY,
-    CustomerName VARCHAR(100) NOT NULL,
-    ContactNumber VARCHAR(15)
+CREATE TABLE IF NOT EXISTS Products(
+	Product_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Store_ID INT NOT NULL,
+    Product_Name VARCHAR(50) NOT NULL,
+    Category_Name VARCHAR(50) NOT NULL,
+    Price DECIMAL(10, 2) NOT NULL, CHECK(Price>0),
+    Discontinued BOOLEAN NOT NULL,
+    In_Stock_Quantity INT NOT NULL, CHECK(In_Stock_Quantity>=0),
+    Backlog_Quantity INT NOT NULL, CHECK(Backlog_Quantity>=0),
+    Weekly_Purchases_Amount INT,
+    Weekly_Purchases_Earinings DECIMAL(10, 2),
+    FOREIGN KEY (Store_ID) REFERENCES Stores(Store_ID)
 );
 
--- Таблица за поръчките
-CREATE TABLE IF NOT EXISTS Orders (
-    OrderID INT AUTO_INCREMENT PRIMARY KEY,
-    OrderDate DATE NOT NULL,
-    CustomerID INT,
-    FOREIGN KEY (CustomerID) REFERENCES Customers(CustomerID)
+CREATE TABLE IF NOT EXISTS Customers(
+	Customer_ID INT AUTO_INCREMENT PRIMARY KEY,
+    First_Name VARCHAR(20) NOT NULL,
+    Last_Name VARCHAR(20) NOT NULL,
+    Last_Visit DATETIME NULL,
+    Last_Item_Purchased_ID INT NULL,
+    FOREIGN KEY (Last_Item_Purchased_ID) REFERENCES Products(Product_ID)
 );
 
--- Таблица за детайлите на поръчките (много към много между Orders и Products)
-CREATE TABLE IF NOT EXISTS OrderDetails (
-    OrderDetailID INT AUTO_INCREMENT PRIMARY KEY,
-    OrderID INT,
-    ProductID INT,
-    Quantity INT NOT NULL,
-    FOREIGN KEY (OrderID) REFERENCES Orders(OrderID),
-    FOREIGN KEY (ProductID) REFERENCES Products(ProductID)
+CREATE TABLE IF NOT EXISTS Inventory(
+	Inventory_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Location VARCHAR(50) NOT NULL,
+    Product_ID INT NOT NULL,
+    Total_Quantity INT NOT NULL,
+    FOREIGN KEY (Product_ID) REFERENCES Products(Product_ID)
 );
 
+CREATE TABLE IF NOT EXISTS Shipments(
+	Shipment_ID INT AUTO_INCREMENT PRIMARY KEY,
+    Product_ID INT NOT NULL,
+    From_Inventory_ID INT NOT NULL,
+    To_Store_ID INT NOT NULL,
+    Shipping_Date DATE NOT NULL,
+    Quantity INT NOT NULL, CHECK(Quantity>0),
+    FOREIGN KEY (From_Inventory_ID) REFERENCES Inventory(Inventory_ID),
+    FOREIGN KEY (To_Store_ID) REFERENCES Stores(Store_ID),
+    FOREIGN KEY (Product_ID) REFERENCES Products(Product_ID)
+);
