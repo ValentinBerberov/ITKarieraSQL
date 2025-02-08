@@ -561,64 +561,106 @@ INSERT INTO Customers (First_Name, Last_Name, Last_Visit, Last_Item_Purchased_ID
 ("Михаил", "Стаматов", "2025-02-03 15:55:00", 10)
 ;
 
+
 -- 1. Магазини с над 900000 лв. приход
 SELECT Store_ID, Location, Yearly_Earnings FROM Stores WHERE Yearly_Earnings>=900000;
 
+
 -- 2. Всички продукти от магазин
 SELECT 
-    i.Store_ID AS "Номер на магазина", i.Product_ID AS "Номер на продукта", pt.Product_Name AS "Име на продукта", i.Price AS "Цена на продукта", (i.In_Stock_Quantity+i.Backlog_Quantity) AS "Брой"
+    i.Store_ID AS "Номер на магазина", i.Product_ID AS "Номер на продукта",
+    pt.Product_Name AS "Име на продукта",
+    i.Price AS "Цена на продукта",
+    (i.In_Stock_Quantity+i.Backlog_Quantity) AS "Брой"
 FROM Items i
 JOIN ProductTypes pt ON i.Product_ID = pt.Product_ID
 WHERE i.Store_ID=4
 ORDER BY i.Product_ID ASC;
 
--- 3. Всички продукти с цена над цена
+
+-- 3. Всички продукти над цена
 SELECT 
-    i.Store_ID AS "Номер на магазина", i.Product_ID AS "Номер на продукта", pt.Product_Name AS "Име на продукта", i.Price AS "Цена на продукта"
-FROM Items i
+    i.Store_ID AS "Номер на магазина", i.Product_ID AS "Номер на продукта",
+    pt.Product_Name AS "Име на продукта", i.Price AS "Цена на продукта"
+FROM Items AS i
 JOIN ProductTypes pt ON i.Product_ID = pt.Product_ID
-WHERE i.Price>=6
-ORDER BY i.Product_ID ASC;
+WHERE i.Price>=8
+ORDER BY i.Price ASC;
+
 
 -- 4. Сортиране по цена
 SELECT 
-    i.Store_ID AS "Номер на магазина", i.Product_ID AS "Номер на продукта", pt.Product_Name AS "Име на продукта", i.Price AS "Цена на продукта"
+    i.Store_ID AS "Номер на магазина", i.Product_ID AS "Номер на продукта",
+    pt.Product_Name AS "Име на продукта", i.Price AS "Цена на продукта"
 FROM Items i
 JOIN ProductTypes pt ON i.Product_ID = pt.Product_ID
 ORDER BY i.Price ASC;
+
 
 -- 5. Стойност на всички продукти в магазин
 SELECT SUM(i.Price * (i.In_Stock_Quantity + i.Backlog_Quantity)) AS Total_Value
 FROM Items AS i
 WHERE i.Store_ID=4;
 
+
 -- 6. Среден седмичен доход на магазин
 SELECT SUM(i.Price * i.Weekly_Purchases_Amount) AS Total_Value
 FROM Items AS i
 WHERE i.Store_ID=3;
 
+
 -- 7. Извличане на продукт с най-висока наличност в магазин
 SELECT 
-    i.Store_ID AS "Номер на магазина", i.Product_ID AS "Номер на продукта", pt.Product_Name AS "Име на продукта", i.Price AS "Цена на продукта", (In_Stock_Quantity+Backlog_Quantity) AS Total
+    i.Store_ID AS "Номер на магазина", i.Product_ID AS "Номер на продукта",
+    pt.Product_Name AS "Име на продукта", i.Price AS "Цена на продукта",
+    (In_Stock_Quantity+Backlog_Quantity) AS Total
 FROM Items i
 JOIN ProductTypes pt ON i.Product_ID = pt.Product_ID
 WHERE i.Store_ID=1
 ORDER BY Total DESC
 LIMIT 1;
 
+
 -- 8. Купуване на продукт от клиент
+UPDATE Items
+SET In_Stock_Quantity = In_Stock_Quantity - 2
+WHERE Store_ID=1 AND Product_ID=4;
+UPDATE Customers
+SET Last_Item_Purchased_ID = 4
+WHERE Customer_ID=2;
+UPDATE Customers
+SET Last_Visit = NOW()
+WHERE Customer_ID=2;
+SELECT 
+	i.Store_ID AS "Номер на магазина", i.Product_ID AS "Номер на продукта",
+	pt.Product_Name AS "Име на продукта",
+	i.Price AS "Цена на продукта",
+    2 AS "Закупен Брой",
+	(i.In_Stock_Quantity+i.Backlog_Quantity) AS "Оставащ Брой"
+FROM Items i
+JOIN ProductTypes pt ON i.Product_ID = pt.Product_ID
+WHERE i.Store_ID=1 AND i.Product_ID=4
+ORDER BY i.Product_ID ASC;
 
 
 -- 9. Презареждане на магазин
-UPDATE Items AS i
-JOIN Shipments AS s ON i.Store_ID = s.To_Store_ID AND i.Product_ID = s.Product_ID
-SET i.In_Stock_Quantity = i.In_Stock_Quantity + s.Quantity
-WHERE s.To_Store_ID = 1;
+-- UPDATE Items AS i
+-- JOIN Shipments AS s ON i.Store_ID = s.To_Store_ID AND i.Product_ID = s.Product_ID
+-- SET i.In_Stock_Quantity = i.In_Stock_Quantity + s.Quantity
+-- WHERE s.To_Store_ID = 1;
+-- DELETE FROM Shipments
+-- WHERE Shipment_ID=1;
 
-
+SELECT * FROM Shipments;
 
 -- 10. Поръчване на продукт
 INSERT INTO Shipments (Product_ID, From_Inventory_ID, To_Store_ID, Shipping_Date, Quantity)
 VALUES (10, 6, 6, NOW()+1, 50);
 
 SELECT * FROM Shipments;
+
+-- Информация за последната покупка на клиент
+SELECT c.Customer_ID, c.First_Name, c.Last_Name, c.Last_Visit, c.Last_Item_Purchased_ID, pt.Product_Name
+FROM ProductTypes AS pt
+JOIN Customers as c ON pt.Product_ID=c.Last_Item_Purchased_ID
+WHERE c.Customer_ID=2;
