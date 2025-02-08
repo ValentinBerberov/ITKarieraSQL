@@ -642,6 +642,19 @@ JOIN ProductTypes pt ON i.Product_ID = pt.Product_ID
 WHERE i.Store_ID=1 AND i.Product_ID=4
 ORDER BY i.Product_ID ASC;
 
+-- 9. Поръчване на продукт
+INSERT INTO Shipments (Product_ID, From_Inventory_ID, To_Store_ID, Shipping_Date, Quantity)
+VALUES (10, 6, 6, NOW()+1, 50);
+
+SELECT * FROM Shipments;
+
+-- 10. Информация за последната покупка на клиент
+SELECT c.Customer_ID AS "Номер на клиента", c.First_Name AS "Име", c.Last_Name AS "Фамилия", c.Last_Visit AS "Време на последна покупка", c.Last_Item_Purchased_ID AS "Последна покупка", pt.Product_Name AS "Продукт"
+FROM ProductTypes AS pt
+JOIN Customers as c ON pt.Product_ID=c.Last_Item_Purchased_ID
+WHERE c.Customer_ID=2;
+
+
 
 -- 9. Презареждане на магазин
 -- UPDATE Items AS i
@@ -650,17 +663,4 @@ ORDER BY i.Product_ID ASC;
 -- WHERE s.To_Store_ID = 1;
 -- DELETE FROM Shipments
 -- WHERE Shipment_ID=1;
-
-SELECT * FROM Shipments;
-
--- 10. Поръчване на продукт
-INSERT INTO Shipments (Product_ID, From_Inventory_ID, To_Store_ID, Shipping_Date, Quantity)
-VALUES (10, 6, 6, NOW()+1, 50);
-
-SELECT * FROM Shipments;
-
--- Информация за последната покупка на клиент
-SELECT c.Customer_ID, c.First_Name, c.Last_Name, c.Last_Visit, c.Last_Item_Purchased_ID, pt.Product_Name
-FROM ProductTypes AS pt
-JOIN Customers as c ON pt.Product_ID=c.Last_Item_Purchased_ID
-WHERE c.Customer_ID=2;
+-- SELECT * FROM Shipments;
